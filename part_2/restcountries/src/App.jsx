@@ -4,6 +4,14 @@ import axios from 'axios';
 export default () => {
   const [countries, setCountries] = useState([]);
   const [query, setQuery] = useState('');
+  const [toggle, setToggle] = useState({});
+
+  function handleToggle(id) {
+    setToggle({
+      ...toggle,
+      [id]: !toggle[id],
+    });
+  }
 
   useEffect(() => {
     axios
@@ -17,14 +25,22 @@ export default () => {
 
   // for matches less than 10 countries
   function mapCountries() {
-    return filteredCountries.map((country) => (
-      <p key={country.name.common}>{country.name.common}</p>
-    ));
+    return filteredCountries.map((country) => {
+      let name = country.name.common;
+      return (
+        <div key={name}>
+          <span>{name}</span>
+          <button onClick={() => handleToggle(name)}>
+            {toggle[name] ? 'hide' : 'show'}
+          </button>
+          {toggle[name] && getCountryData(country)}
+        </div>
+      );
+    });
   }
 
   // for exactly one result for the query
-  function getCountryData() {
-    const country = filteredCountries[0];
+  function getCountryData(country = filteredCountries[0]) {
     return (
       <>
         <h1>{country?.name.common}</h1>
