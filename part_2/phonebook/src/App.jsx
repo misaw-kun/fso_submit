@@ -25,8 +25,39 @@ const App = () => {
       id: persons.length + 1,
     };
 
-    if (persons.some((person) => person.name === newName)) {
-      alert(`${newName} is already added to the phonebook`);
+    // check if contact exists
+    if (persons.some((person) => person.name === newContact.name)) {
+      let existingData = persons.filter(
+        (person) => person.name === newContact.name
+      );
+      // console.log(existingData);
+      // check if a new number was added or left empty
+      if (
+        newContact.number !== existingData[0].number &&
+        window.confirm(
+          `${newContact.name} already exists in the phonebook, replace the old number with new one ?`
+        )
+      ) {
+        contactService
+          .update(existingData[0].id, {
+            ...existingData[0],
+            number: newContact.number,
+          })
+          .then(() => {
+            // optimistic ui: locally update data for re render ( or make a network request! )
+            let newState = persons.map((person) => {
+              if (person.id === existingData[0].id) {
+                return { ...existingData[0], number: newNumber };
+              }
+              return person;
+            });
+
+            setPersons(newState);
+          });
+      } else {
+        alert(`contact already exists`);
+        return;
+      }
     } else {
       contactService.create(newContact).then((contact) => {
         setPersons(persons.concat(contact));
