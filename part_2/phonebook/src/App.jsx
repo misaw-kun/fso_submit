@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import axios from 'axios';
+import contactService from './services/contacts';
+
 import { useState } from 'react';
 import { AddContact } from './components/AddContact';
 import { ContactList } from './components/ContactList';
@@ -12,29 +13,44 @@ const App = () => {
   const [query, setQuery] = useState('');
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then((res) => setPersons(res.data));
+    contactService.getAll().then((contacts) => setPersons(contacts));
   }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
+
+    const newContact = {
+      name: newName,
+      number: newNumber,
+      id: persons.length + 1,
+    };
+
     if (persons.some((person) => person.name === newName)) {
       alert(`${newName} is already added to the phonebook`);
     } else {
-      setPersons(
-        persons.concat({
-          id: persons.length + 1,
-          name: newName,
-          number: newNumber,
-        })
-      );
+      contactService.create(newContact).then((contact) => {
+        setPersons(persons.concat(contact));
+        setNewName('');
+        setNewNumber('');
+      });
     }
   }
 
-  const filteredContacts = persons.filter((person) =>
-    person.name.toLowerCase().includes(query.toLowerCase())
-  );
+  function handleDelete(person) {
+    if (window.confirm(`Delete ${person.name} ?`)) {
+      contactService
+        .destroy(person.id)
+        .then(() =>
+          setPersons(persons.filter((contact) => contact.id !== person.id))
+        );
+    }
+  }
+
+  const filteredContacts = query
+    ? persons.filter((person) =>
+        person.name.toLowerCase().includes(query.toLowerCase())
+      )
+    : persons;
 
   return (
     <div>
@@ -49,7 +65,7 @@ const App = () => {
         setNewNumber={setNewNumber}
       />
       <h2>Numbers</h2>
-      <ContactList contacts={filteredContacts} />
+      <ContactList contacts={filteredContacts} deleteHandler={handleDelete} />
     </div>
   );
 };
