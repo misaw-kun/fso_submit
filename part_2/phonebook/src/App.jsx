@@ -5,12 +5,15 @@ import { useState } from 'react';
 import { AddContact } from './components/AddContact';
 import { ContactList } from './components/ContactList';
 import { Search } from './components/Search';
+import { Notification } from './components/Notification';
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [query, setQuery] = useState('');
+  const [notification, setNotification] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     contactService.getAll().then((contacts) => setPersons(contacts));
@@ -53,9 +56,23 @@ const App = () => {
             });
 
             setPersons(newState);
+          })
+          .then(() => {
+            setNotification('contact updated');
+            setTimeout(() => setNotification(null), 3000);
+          })
+          .catch(() => {
+            setError(true);
+            setNotification(
+              `${existingData[0].name} is already deleted from server`
+            );
+            setTimeout(() => setNotification(null), 3000);
           });
       } else {
-        alert(`contact already exists`);
+        setNotification(`contact already exists`);
+        setError(true);
+        setTimeout(() => setNotification(null), 3000);
+        setError(false);
         return;
       }
     } else {
@@ -63,17 +80,18 @@ const App = () => {
         setPersons(persons.concat(contact));
         setNewName('');
         setNewNumber('');
+        setNotification(`${contact.name} added to phonebook`);
+        setTimeout(() => setNotification(null), 3000);
       });
     }
   }
 
   function handleDelete(person) {
     if (window.confirm(`Delete ${person.name} ?`)) {
-      contactService
-        .destroy(person.id)
-        .then(() =>
-          setPersons(persons.filter((contact) => contact.id !== person.id))
-        );
+      contactService.destroy(person.id).then(() => {
+        setPersons(persons.filter((contact) => contact.id !== person.id));
+        setNotification(`${person.name} deleted from phonebook`);
+      });
     }
   }
 
@@ -86,6 +104,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      {notification && <Notification message={notification} isError={error} />}
       <Search query={query} onChangeQuery={(e) => setQuery(e.target.value)} />
       <h2>Add a new contact</h2>
       <AddContact
