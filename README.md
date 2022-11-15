@@ -1,6 +1,6 @@
 # fso_submit
 
-> main branch contains part 1 to 3 (involving frontend portion) of the course
+> main branch contains part 0 to 2 (involving frontend portion) of the course
 
 coursework submissions for fullstackopen 2022
 
