@@ -25,11 +25,11 @@ const App = () => {
     const newContact = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1,
     };
 
     // check if contact exists
     if (persons.some((person) => person.name === newContact.name)) {
+      debugger;
       let existingData = persons.filter(
         (person) => person.name === newContact.name
       );
@@ -77,6 +77,7 @@ const App = () => {
       }
     } else {
       contactService.create(newContact).then((contact) => {
+        console.log(contact);
         setPersons(persons.concat(contact));
         setNewName('');
         setNewNumber('');
@@ -91,6 +92,7 @@ const App = () => {
       contactService.destroy(person.id).then(() => {
         setPersons(persons.filter((contact) => contact.id !== person.id));
         setNotification(`${person.name} deleted from phonebook`);
+        setTimeout(() => setNotification(null), 3000);
       });
     }
   }
