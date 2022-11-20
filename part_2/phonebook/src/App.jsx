@@ -29,7 +29,6 @@ const App = () => {
 
     // check if contact exists
     if (persons.some((person) => person.name === newContact.name)) {
-      debugger;
       let existingData = persons.filter(
         (person) => person.name === newContact.name
       );
@@ -61,29 +60,41 @@ const App = () => {
             setNotification('contact updated');
             setTimeout(() => setNotification(null), 3000);
           })
-          .catch(() => {
+          .catch((err) => {
             setError(true);
-            setNotification(
-              `${existingData[0].name} is already deleted from server`
-            );
-            setTimeout(() => setNotification(null), 3000);
+            setNotification(err.response.data.error);
+            setTimeout(() => {
+              setNotification(null);
+              setError(false);
+            }, 3000);
           });
       } else {
         setNotification(`contact already exists`);
         setError(true);
-        setTimeout(() => setNotification(null), 3000);
-        setError(false);
+        setTimeout(() => {
+          setNotification(null);
+          setError(false);
+        }, 3000);
         return;
       }
     } else {
-      contactService.create(newContact).then((contact) => {
-        console.log(contact);
-        setPersons(persons.concat(contact));
-        setNewName('');
-        setNewNumber('');
-        setNotification(`${contact.name} added to phonebook`);
-        setTimeout(() => setNotification(null), 3000);
-      });
+      contactService
+        .create(newContact)
+        .then((contact) => {
+          setPersons(persons.concat(contact));
+          setNewName('');
+          setNewNumber('');
+          setNotification(`${contact.name} added to phonebook`);
+          setTimeout(() => setNotification(null), 3000);
+        })
+        .catch((err) => {
+          setError(true);
+          setNotification(err.response.data.error);
+          setTimeout(() => {
+            setNotification(null);
+            setError(false);
+          }, 5000);
+        });
     }
   }
 
